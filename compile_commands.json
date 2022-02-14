@@ -1,0 +1,16 @@
+[
+    {
+        "arguments": [
+            "avr-gcc",
+            "-c",
+            "-Wall",
+            "-Os",
+            "-mmcu=atmega328p",
+            "-o",
+            "TX_radio_test.o",
+            "TX_radio_test.c"
+        ],
+        "directory": "/home/arthur/Documents/LURA/payload/telemetry_software",
+        "file": "TX_radio_test.c"
+    }
+]
