@@ -13,4 +13,6 @@ uint8_t SPI_read_register(uint8_t address);
 
 void SPI_write_register(uint8_t address, uint8_t value);
 
+void SPI_write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes);
+
 #endif

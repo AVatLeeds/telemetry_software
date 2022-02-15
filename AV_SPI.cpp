@@ -42,3 +42,17 @@ void SPI_write_register(uint8_t address, uint8_t value)
     PORTB |= 0b00000100; // Raise SS
     return;
 }
+
+void SPI_write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes)
+{
+    uint32_t i;
+    PORTB &= 0b11111011;
+    SPI_send(address |= 0b10000000);
+    for (i = 0; i < num_bytes; i ++)
+    {
+        SPI_send(*data_ptr);
+        data_ptr ++;
+    }
+    PORTB |= 0b00000100;
+    return;
+}
