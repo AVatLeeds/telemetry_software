@@ -1,16 +1,30 @@
 [
     {
         "arguments": [
-            "avr-gcc",
+            "avr-g++",
             "-c",
             "-Wall",
             "-Os",
             "-mmcu=atmega328p",
             "-o",
             "TX_radio_test.o",
-            "TX_radio_test.c"
+            "AV_USART.cpp"
         ],
         "directory": "/home/arthur/Documents/LURA/payload/telemetry_software",
-        "file": "TX_radio_test.c"
+        "file": "AV_USART.cpp"
+    },
+    {
+        "arguments": [
+            "avr-g++",
+            "-c",
+            "-Wall",
+            "-Os",
+            "-mmcu=atmega328p",
+            "-o",
+            "TX_radio_test.o",
+            "TX_radio_test.cpp"
+        ],
+        "directory": "/home/arthur/Documents/LURA/payload/telemetry_software",
+        "file": "TX_radio_test.cpp"
     }
 ]

@@ -8,7 +8,8 @@ void SPI_master_init()
     // Set MISO (PB4) as input
     DDRB &= 0b11101111;
     PORTB |= 0b00000100; // Raise SS
-    SPCR = 0b01011100;
+    //SPCR = 0b01011100;
+    SPCR = 0b01010011;
 }
 
 void SPI_send(uint8_t data_byte)
@@ -27,7 +28,7 @@ uint8_t SPI_receive()
 uint8_t SPI_read_register(uint8_t address)
 {
     PORTB &= 0b11111011; //Lower SS
-    SPI_send(address |= 0b10000000);
+    SPI_send(address &= 0b01111111);
     uint8_t received_byte = SPI_receive();
     PORTB |= 0b00000100; // Raise SS
     return received_byte;
@@ -36,7 +37,7 @@ uint8_t SPI_read_register(uint8_t address)
 void SPI_write_register(uint8_t address, uint8_t value)
 {
     PORTB &= 0b11111011; //Lower SS
-    SPI_send(address &= 0b01111111);
+    SPI_send(address |= 0b10000000);
     SPI_send(value);
     PORTB |= 0b00000100; // Raise SS
     return;
