@@ -14,7 +14,7 @@ PROG_FLAGS =	-v\
 prog.hex: TX_radio_test.o
 	$(OBJCOPY) -O ihex $< $@
 
-TX_radio_test.o: TX_radio_test.cpp AV_USART.cpp AV_SPI.cpp
+TX_radio_test.o: TX_radio_test.cpp AV_USART.cpp AV_SPI.cpp RFM9x_driver.cpp
 	$(CC) $(CFLAGS) -o $@ $^
 
 fuses:
