@@ -164,6 +164,8 @@ class RFM9x_c
 
     void write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes);
 
+    void low_data_rate_optimise(uint8_t value);
+
 
     private:
 };

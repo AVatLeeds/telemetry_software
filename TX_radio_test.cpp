@@ -4,15 +4,26 @@
 #include <stdint.h>
 #include <avr/io.h>
 #include <util/delay.h>
+#include <math.h>
 
 #include "AV_USART.h"
 #include "AV_SPI.h"
 #include "RFM9x_driver.h"
 
-char * test_string = "Hello world!\n\r";
-uint8_t test_string_length = 14;
-char * payload = "Hello LURA!";
-uint8_t payload_length = 11;
+#define SPREADING_FACTOR    12
+#define PREAMBLE_LENGTH     6
+#define LOW_DATA_RATE       0
+#define CRC_ENABLED         1
+#define CODING_RATE         1
+#define IMPLICIT_HEADER     0
+#define PAYLOAD_LENGTH      4
+
+//char * test_string = "Hello world!\n\r";
+//uint8_t test_string_length = 14;
+//char * payload = "Hello LURA!";
+//uint8_t payload_length = 11;
+
+uint8_t payload[PAYLOAD_LENGTH];
 
 void print_in_binary(uint8_t byte)
 {
@@ -70,8 +81,8 @@ int main(void)
     DDRD |= (1U << 1); // set port_D pin_1 as output for USART TX
     DDRD &= ~(1U << 0); // set port_D pin_0 as input for USART RX
     USART_init(F_CPU, 9600);
-    _delay_ms(10000);
-    USART_transmit_multi_bytes((uint8_t *)test_string, 14);
+    _delay_ms(2000);
+    //USART_transmit_multi_bytes((uint8_t *)test_string, 14);
 
     SPI_master_init();
 
@@ -182,9 +193,32 @@ int main(void)
         USART_transmit_string("Configuration success!\n\r");
     }
 
+    RFM9x.set_preamble_length(PREAMBLE_LENGTH);
+    RFM9x.CRC_enabled(CRC_ENABLED);
+    RFM9x.set_spreading_factor(SPREADING_FACTOR);
+    RFM9x.set_bandwidth(8); // 250 kHz
+    RFM9x.set_coding_rate(CODING_RATE); // 4/5
+    RFM9x.low_data_rate_optimise(LOW_DATA_RATE);
+
     //uint8_t data_byte;
     USART_transmit_string("\n\r");
     //dump_registers();
+
+    double symbol_duration = 1 / (250000 / (pow(2, SPREADING_FACTOR)));
+    double preamble_duration = (PREAMBLE_LENGTH + 4.25) * symbol_duration;
+    double payload_symbols_numerator = (8 * PAYLOAD_LENGTH) - (4 * SPREADING_FACTOR) + 28 + (16 * CRC_ENABLED) - (20 * IMPLICIT_HEADER);
+    double payload_symbols_denominator = 4 * (SPREADING_FACTOR - (2 * LOW_DATA_RATE));
+    double payload_symbols = 8 + fmax((ceil(payload_symbols_numerator / payload_symbols_denominator) * (CODING_RATE + 4)), 0);
+    double packet_duration = preamble_duration + (payload_symbols * symbol_duration);
+
+    packet_duration *= 1000000;
+
+    payload[0] = (uint32_t)packet_duration & 0xFF;
+    payload[1] = ((uint32_t)packet_duration >> 8) & 0xFF;
+    payload[2] = ((uint32_t)packet_duration >> 16) & 0xFF;
+    payload[3] = ((uint32_t)packet_duration >> 24) & 0xFF;
+    
+
 
     while (1)
     {
@@ -194,8 +228,8 @@ int main(void)
         //USART_transmit_byte('\n');
         //USART_transmit_byte('\r');
 
-        RFM9x.begin_packet(0);
-        RFM9x.write((const uint8_t *)payload, payload_length);
+        RFM9x.begin_packet(IMPLICIT_HEADER);
+        RFM9x.write(payload, PAYLOAD_LENGTH);
         RFM9x.end_packet();
 
         PORTB |= (1U << 1);

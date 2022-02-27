@@ -42,7 +42,7 @@ uint8_t RFM9x_c::begin(long frequency)
     this->modem_config_3.config.AGC_auto_on = 1;
     SPI_write_register(MODEM_CONF_REG_3_ADDR, this->modem_config_3.reg_value);
 
-    // set output power to 10 dBm
+    // set output power to 20 dBm
     set_output_power(20);
 
     // put in standby mode
@@ -307,5 +307,12 @@ void RFM9x_c::set_FIFO_address_ptr(uint8_t address)
 void RFM9x_c::write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes)
 {
     SPI_write_data(address, data_ptr, num_bytes);
+}
+
+void RFM9x_c::low_data_rate_optimise(uint8_t value)
+{
+    get_modem_conf_3();
+    this->modem_config_3.config.low_data_rate_optimise = value;
+    SPI_write_register(MODEM_CONF_REG_3_ADDR, this->modem_config_3.reg_value);
 }
 
