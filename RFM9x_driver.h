@@ -127,6 +127,8 @@ class RFM9x_c
         uint8_t reg_value;
     } IRQ_flags;
 
+    uint8_t (* SPI_transfer_handler)(uint8_t value);
+
     uint8_t begin(long frequency);
     uint8_t begin_packet(int implicit_mode);
     uint8_t end_packet(void);
@@ -166,8 +168,12 @@ class RFM9x_c
 
     void low_data_rate_optimise(uint8_t value);
 
-
     private:
+
+    uint8_t SPI_read_register(uint8_t address);
+    void SPI_write_register(uint8_t address, uint8_t data);
+    void SPI_write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes);
+    
 };
 
 #endif

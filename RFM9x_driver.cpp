@@ -1,7 +1,6 @@
 #include <stdint.h>
 
 #include "RFM9x_driver.h"
-#include "AV_SPI.h"
 
 uint8_t RFM9x_c::begin(long frequency)
 {
@@ -280,6 +279,13 @@ void RFM9x_c::set_spreading_factor(uint8_t spreading_factor)
     SPI_write_register(MODEM_CONF_REG_2_ADDR, this->modem_config_2.reg_value);
 }
 
+void RFM9x_c::low_data_rate_optimise(uint8_t value)
+{
+    get_modem_conf_3();
+    this->modem_config_3.config.low_data_rate_optimise = value;
+    SPI_write_register(MODEM_CONF_REG_3_ADDR, this->modem_config_3.reg_value);
+}
+
 void RFM9x_c::set_bandwidth(uint8_t bandwidth)
 {
     get_modem_conf_1();
@@ -309,10 +315,29 @@ void RFM9x_c::write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes
     SPI_write_data(address, data_ptr, num_bytes);
 }
 
-void RFM9x_c::low_data_rate_optimise(uint8_t value)
+
+
+uint8_t RFM9x_c::SPI_read_register(uint8_t address)
 {
-    get_modem_conf_3();
-    this->modem_config_3.config.low_data_rate_optimise = value;
-    SPI_write_register(MODEM_CONF_REG_3_ADDR, this->modem_config_3.reg_value);
+    SPI_transfer_handler(address &= 0b01111111);
+    uint8_t received_byte = SPI_transfer_handler(0);
+    return received_byte;
+}
+
+void RFM9x_c::SPI_write_register(uint8_t address, uint8_t data)
+{
+    SPI_transfer_handler(address |= 0b10000000);
+    SPI_transfer_handler(data);
+}
+
+void RFM9x_c::SPI_write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes)
+{
+    uint32_t i;
+    SPI_transfer_handler(address |= 0b10000000);
+    for (i = 0; i < num_bytes; i ++)
+    {
+        SPI_transfer_handler(*data_ptr);
+        data_ptr ++;
+    }
 }
 
