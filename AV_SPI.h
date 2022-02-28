@@ -7,6 +7,8 @@ void SPI_master_init();
 
 void SPI_send(uint8_t data_byte);
 
+uint8_t SPI_transfer(uint8_t value);
+
 uint8_t SPI_receive();
 
 uint8_t SPI_read_register(uint8_t address);

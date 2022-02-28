@@ -1,3 +1,4 @@
+#include "AV_SPI.h"
 #include <avr/io.h>
 #include <stdint.h>
 
@@ -22,6 +23,15 @@ uint8_t SPI_receive()
 {
     SPDR = 0x00;
     while (!(SPSR & 0b10000000));
+    return SPDR;
+}
+
+uint8_t SPI_transfer(uint8_t value)
+{
+    PORTB &= 0b11111011; //Lower SS
+    SPDR = value;
+    while (!(SPSR & 0b10000000));
+    PORTB |= 0b00000100; // Raise SS
     return SPDR;
 }
 
