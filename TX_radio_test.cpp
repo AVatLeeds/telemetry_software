@@ -86,7 +86,7 @@ int main(void)
 
     SPI_master_init();
 
-    //reset the RFM9x moduleuint8_t sync_word
+    //reset the RFM9x module
     PORTB &= ~(1U << 0);
     _delay_ms(10);
     PORTB |= (1U << 0);
@@ -94,95 +94,7 @@ int main(void)
 
     class RFM9x_c RFM9x;
 
-    /* uncomment for diagnostic test code
-    RFM9x.get_modem_stats();
-    USART_transmit_multi_bytes((uint8_t *)("Modem stats: "), 13);
-    print_in_binary(RFM9x.modem_stats.reg_value);
-    USART_transmit_byte('\n');
-    USART_transmit_byte('\r');
-
-    _delay_ms(1000);
-
-    RFM9x.get_op_modes();
-    USART_transmit_multi_bytes((uint8_t *)("Operating modes: "), 17);
-    print_in_binary(RFM9x.op_modes.reg_value);
-    USART_transmit_byte('\n');
-    USART_transmit_byte('\r');
-
-    _delay_ms(1000);
-
-    USART_transmit_multi_bytes((uint8_t *)("Setting modes...\n\r"), 18);
-    RFM9x.set_low_freq_mode(0);
-    RFM9x.set_device_mode(SLEEP);
-    RFM9x.set_LoRa_mode(1);
-    RFM9x.set_device_mode(STDBY);
-
-    _delay_ms(1000);
-
-    RFM9x.get_op_modes();
-    USART_transmit_multi_bytes((uint8_t *)("current modes: "), 15);
-    print_in_binary(RFM9x.op_modes.reg_value);
-    USART_transmit_byte('\n');
-    USART_transmit_byte('\r');
-    */
-
-    /* uncomment for initial register settings - didn't work
-    RFM9x.set_sync_word(0x12);
-    RFM9x.set_LoRa_mode(1);
-    RFM9x.set_low_freq_mode(0);
-    RFM9x.set_frequency(869525);
-    RFM9x.set_output_power(10);
-    RFM9x.set_current_limit(100);
-    RFM9x.set_preamble_length(6);
-    RFM9x.set_implicit_mode(1);
-    RFM9x.set_payload_length(0x01);
-    RFM9x.set_max_payload_length(0x01);
-    RFM9x.CRC_enabled(1);
-    RFM9x.set_spreading_factor(7);
-    RFM9x.set_bandwidth(8); // 250 kHz
-    RFM9x.set_coding_rate(1); // 4/5
-
-    RFM9x.set_device_mode(STDBY); // probably already was in standby
-
-    // verify all register state information
-    USART_transmit_string("\n\r");
-    USART_transmit_string("operating_mode: ");
-    print_in_binary(RFM9x.op_modes.reg_value);
-    USART_transmit_string("\n\r");
-    USART_transmit_string("frequency H :");
-    print_in_binary(SPI_read_register(0x06));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("frequency M :");
-    print_in_binary(SPI_read_register(0x07));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("frequency L :");
-    print_in_binary(SPI_read_register(0x08));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("PA configuration :");
-    print_in_binary(SPI_read_register(0x09));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("preamble H :");
-    print_in_binary(SPI_read_register(0x020));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("preamble L :");
-    print_in_binary(SPI_read_register(0x21));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("payload length :");
-    print_in_binary(SPI_read_register(0x22));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("max payload length :");
-    print_in_binary(SPI_read_register(0x23));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("modem config 1 :");
-    print_in_binary(SPI_read_register(0x1D));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("modem config 2 :");
-    print_in_binary(SPI_read_register(0x1E));
-    USART_transmit_string("\n\r");
-    USART_transmit_string("modem config 3 :");
-    print_in_binary(SPI_read_register(0x26));
-    USART_transmit_string("\n\r");
-    */
+    RFM9x.SPI_transfer_handler = SPI_transfer;
 
     if (!RFM9x.begin(869525000))
     {
