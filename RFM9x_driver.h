@@ -133,8 +133,8 @@ class RFM9x_c
     void reset();
 
     uint8_t begin(long frequency);
-    uint8_t begin_packet(int implicit_mode);
-    uint8_t end_packet(void);
+    uint8_t prepare_packet(int implicit_mode);
+    uint8_t send_packet(void);
     uint8_t write(const uint8_t * buffer, uint8_t size);
 
     void get_modem_stats(void);
@@ -152,6 +152,8 @@ class RFM9x_c
     void set_frequency(long frequency);
     void set_output_power(uint8_t power_dBm);
     void set_current_limit(uint8_t current_limit_mA);
+    void set_LNA_boost(uint8_t value);
+    void set_AGC(uint8_t value);
 
     void set_preamble_length(uint16_t preamble_length);
     void set_implicit_mode(uint8_t value);
@@ -165,15 +167,17 @@ class RFM9x_c
     void set_coding_rate(uint8_t coding_rate);
 
     void set_FIFO_TX_base_address(uint8_t address);
+    void set_FIFO_RX_base_address(uint8_t address);
     void set_FIFO_address_ptr(uint8_t address);
 
     void write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes);
 
     void low_data_rate_optimise(uint8_t value);
 
+    uint8_t SPI_read_register(uint8_t address);
+
     private:
 
-    uint8_t SPI_read_register(uint8_t address);
     void SPI_write_register(uint8_t address, uint8_t data);
     void SPI_write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes);
     

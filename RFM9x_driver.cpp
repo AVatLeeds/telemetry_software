@@ -4,8 +4,6 @@
 
 uint8_t RFM9x_c::begin(long frequency)
 {
-    uint8_t temp_reg;
-
     // check version
     uint8_t version = SPI_read_register(VERSION_REG_ADDR);
     if (version != 0x12)
@@ -29,17 +27,14 @@ uint8_t RFM9x_c::begin(long frequency)
     set_frequency(frequency);
 
     // set base addresses
-    SPI_write_register(FIFO_TX_BASE_REG_ADDR, 0);
-    SPI_write_register(FIFO_RX_BASE_REG_ADDR, 0);
+    set_FIFO_TX_base_address(0);
+    set_FIFO_RX_base_address(0);
 
     // set LNA boost
-    temp_reg = SPI_read_register(LNA_REG_ADDR);
-    SPI_write_register(LNA_REG_ADDR, (temp_reg | 0x03));
+    set_LNA_boost(1);
 
     // set auto AGC
-    get_modem_conf_3();
-    this->modem_config_3.config.AGC_auto_on = 1;
-    SPI_write_register(MODEM_CONF_REG_3_ADDR, this->modem_config_3.reg_value);
+    set_AGC(1);
 
     // set output power to 20 dBm
     set_output_power(20);
@@ -50,7 +45,7 @@ uint8_t RFM9x_c::begin(long frequency)
     return 1;
 }
 
-uint8_t RFM9x_c::begin_packet(int implicit_mode)
+uint8_t RFM9x_c::prepare_packet(int implicit_mode)
 {
     get_op_modes();
     if (this->op_modes.mode.device_mode == TX) 
@@ -70,7 +65,7 @@ uint8_t RFM9x_c::begin_packet(int implicit_mode)
     return 1;
 }
 
-uint8_t RFM9x_c::end_packet(void)
+uint8_t RFM9x_c::send_packet(void)
 {
     SPI_write_register(DIO_MAPPING_1_REG_ADDR, 0x40); // DIO0 => TXDONE
 
@@ -239,6 +234,18 @@ void RFM9x_c::set_current_limit(uint8_t current_limit_mA)
     SPI_write_register(OCP_REG_ADDR, 0x20 | (0x1F & reg_value)); //double check this!
 }
 
+void RFM9x_c::set_LNA_boost(uint8_t value)
+{
+    SPI_write_register(LNA_REG_ADDR, (SPI_read_register(LNA_REG_ADDR) | 0x03));
+}
+
+void RFM9x_c::set_AGC(uint8_t value)
+{
+    get_modem_conf_3();
+    this->modem_config_3.config.AGC_auto_on = value;
+    SPI_write_register(MODEM_CONF_REG_3_ADDR, this->modem_config_3.reg_value);
+}
+
 void RFM9x_c::set_preamble_length(uint16_t preamble_length)
 {
     preamble_length = (preamble_length < 6) ? 6 : preamble_length;
@@ -303,6 +310,11 @@ void RFM9x_c::set_coding_rate(uint8_t coding_rate)
 void RFM9x_c::set_FIFO_TX_base_address(uint8_t address)
 {
     SPI_write_register(FIFO_TX_BASE_REG_ADDR, address);
+}
+
+void RFM9x_c::set_FIFO_RX_base_address(uint8_t address)
+{
+    SPI_write_register(FIFO_RX_BASE_REG_ADDR, address);
 }
 
 void RFM9x_c::set_FIFO_address_ptr(uint8_t address)
