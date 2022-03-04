@@ -315,7 +315,24 @@ void RFM9x_c::write_data(uint8_t address, uint8_t * data_ptr, uint32_t num_bytes
     SPI_write_data(address, data_ptr, num_bytes);
 }
 
-
+// ??????
+void RFM9x_c::reset()
+{
+    reset_pin_handler(0);
+    uint32_t i = 160000;
+    while (i)
+    {
+        __asm__("nop");
+        i --;
+    }
+    reset_pin_handler(1);
+    i = 160000;
+    while (i)
+    {
+        __asm__("nop");
+        i --;
+    }
+}
 
 uint8_t RFM9x_c::SPI_read_register(uint8_t address)
 {

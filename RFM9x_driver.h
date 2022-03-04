@@ -128,6 +128,9 @@ class RFM9x_c
     } IRQ_flags;
 
     uint8_t (* SPI_transfer_handler)(uint8_t value);
+    uint8_t (* reset_pin_handler)(uint8_t value);
+
+    void reset();
 
     uint8_t begin(long frequency);
     uint8_t begin_packet(int implicit_mode);
