@@ -5,6 +5,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "AV_USART.h"
 #include "AV_SPI.h"
@@ -140,9 +141,9 @@ int main(void)
         //USART_transmit_byte('\n');
         //USART_transmit_byte('\r');
 
-        RFM9x.begin_packet(IMPLICIT_HEADER);
+        RFM9x.prepare_packet(IMPLICIT_HEADER);
         RFM9x.write(payload, PAYLOAD_LENGTH);
-        RFM9x.end_packet();
+        RFM9x.send_packet();
 
         PORTB |= (1U << 1);
 
@@ -151,6 +152,8 @@ int main(void)
         PORTB &= ~(1U << 1);
 
         _delay_ms(1000);
+        
+        printf("test");
     }
 
     return 0;
