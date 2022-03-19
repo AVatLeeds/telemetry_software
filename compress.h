@@ -17,13 +17,23 @@
 #define GPS_POS_Y_WIDTH     12
 #define GPS_HEADING_WIDTH   8
 
+#define BUFFER_LENGTH   15
 
+struct limits
+{
+    float min;
+    float max;
+    float scale_factor;
+};
 
 class Compressor
 {
     public:
 
     Compressor();
+
+    uint8_t * get_buffer();
+    void set_buffer(uint8_t * buffer_ptr);
 
     void compute_normalisation_coefficients(float latitude_angle);
 
@@ -37,10 +47,26 @@ class Compressor
     void pack_thermocouple_3(float temperature);
     void pack_thermocouple_4(float temperature);
     void pack_battery_voltage(float voltage);
-    void pack_GPS_long(float angle);
-    void pack_GPS_lat(float angle);
+    //void pack_GPS_long(float angle);
+    //void pack_GPS_lat(float angle);
     void pack_GPS_lat_long(float latitude_angle, float longitude_angle);
     void pack_GPS_heading(float angle);
+
+    float unpack_quaternion_r();
+    float unpack_quaternion_i();
+    float unpack_quaternion_j();
+    float unpack_quaternion_k();
+    float unpack_BME280_temp();
+    float unpack_altitude();
+    float unpack_humidity();
+    float unpack_thermocouple_1();
+    float unpack_thermocouple_2();
+    float unpack_thermocouple_3();
+    float unpack_thermocouple_4();
+    float unpack_battery_voltage();
+    float unpack_GPS_lat();
+    float unpack_GPS_long();
+    float unpack_GPS_heading();
 
     uint8_t * return_packet_buffer();
 
@@ -51,9 +77,21 @@ class Compressor
     float _initial_latitude = 0;
     float _initial_longitude = 0;
 
+    struct limits _BME280_temp;
+    struct limits _altitude;
+    struct limits _humidity;
+    struct limits _thermocouple_1;
+    struct limits _thermocouple_2;
+    struct limits _thermocouple_3;
+    struct limits _thermocouple_4;
+    struct limits _battery_voltage;
+    struct limits _GPS_lat;
+    struct limits _GPS_long;
+    struct limits _GPS_heading;
+
     union
     {
-        uint8_t buffer[15];
+        uint8_t buffer[BUFFER_LENGTH];
 
         struct
         {

@@ -8,6 +8,41 @@
 #define DEGS_PER_METRE  RADS_PER_METRE * (360 / (2 * M_PI))
 #define DEGS_PER_METRE_E7  RADS_PER_METRE * (360E7 / (2 * M_PI))
 
+Compressor::Compressor()
+{
+    _BME280_temp.min = -5;
+    _BME280_temp.max = 45;
+    _BME280_temp.scale_factor = gcem::pow(2, BME280_TEMPERATURE_WIDTH) / (_BME280_temp.max - _BME280_temp.min);
+
+    _altitude.min = -96;
+    _altitude.max = 4000;
+    _altitude.scale_factor = gcem::pow(2, ALTITUDE_WIDTH) / (_altitude.max - _altitude.min);
+
+    _humidity.min = 0;
+    _humidity.max = 100;
+    _humidity.scale_factor = gcem::pow(2, HUMIDITY_WIDTH) / (_humidity.max - _humidity.min);
+
+    _thermocouple_1.min = -5;
+    _thermocouple_1.max = 60;
+    _thermocouple_1.scale_factor = gcem::pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_1.max - _thermocouple_1.min);
+
+    _thermocouple_2.min = -5;
+    _thermocouple_2.max = 60;
+    _thermocouple_2.scale_factor = gcem::pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_2.max - _thermocouple_2.min);
+
+    _thermocouple_3.min = -5;
+    _thermocouple_3.max = 60;
+    _thermocouple_3.scale_factor = gcem::pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_3.max - _thermocouple_3.min);
+
+    _thermocouple_4.min = -5;
+    _thermocouple_4.max = 60;
+    _thermocouple_4.scale_factor = gcem::pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_4.max - _thermocouple_4.min);
+
+    _battery_voltage.min = 3.3;
+    _battery_voltage.max = 4.2;
+    _battery_voltage.scale_factor = gcem::pow(2, BATTERY_VOLTAGE_WIDTH) / (_battery_voltage.max - _battery_voltage.min);
+}
+
 void Compressor::compute_normalisation_coefficients(float latitude_angle)
 {
     constexpr float step_size_rad = RADS_PER_METRE;
@@ -27,84 +62,126 @@ void Compressor::pack_quaternions(float r, float i, float j, float k)
     _packet.quaternion_k = (int8_t)(k * 100);
 }
 
+float Compressor::unpack_quaternion_r()
+{
+    return (float)(_packet.quaternion_r / 100);
+}
+
+float Compressor::unpack_quaternion_i()
+{
+    return (float)(_packet.quaternion_i / 100);
+}
+
+float Compressor::unpack_quaternion_j()
+{
+    return (float)(_packet.quaternion_j / 100);
+}
+
+float Compressor::unpack_quaternion_k()
+{
+    return (float)(_packet.quaternion_k / 100);
+}
+
 void Compressor::pack_BME280_temp(float temperature)
 {
-    constexpr float max_temp = 45;
-    constexpr float min_temp = -5;
-    constexpr float scale_factor = gcem::pow(2, BME280_TEMPERATURE_WIDTH) / (max_temp - min_temp);
-    temperature = temperature > max_temp ? max_temp : temperature;
-    temperature = temperature < min_temp ? min_temp : temperature;
-    temperature += min_temp;
-    _packet.BME280_temperature = (uint8_t)(temperature * scale_factor);
+    temperature = temperature > _BME280_temp.max ? _BME280_temp.max : temperature;
+    temperature = temperature < _BME280_temp.min ? _BME280_temp.min : temperature;
+    temperature -= _BME280_temp.min;
+    _packet.BME280_temperature = (uint8_t)(temperature * _BME280_temp.scale_factor);
+}
+
+float Compressor::unpack_BME280_temp()
+{
+    return (float)(_packet.BME280_temperature / _BME280_temp.scale_factor);
 }
 
 void Compressor::pack_altitude(float altitude)
 {
-    constexpr float min_altitude = -96;
-    constexpr float max_altitude = 4000;
-    constexpr float scale_factor = gcem::pow(2, ALTITUDE_WIDTH) / (max_altitude - min_altitude);
-    altitude -= min_altitude;
-    _packet.altitude = (int16_t)(altitude * scale_factor);
+    altitude = altitude > _altitude.max ? _altitude.max : altitude;
+    altitude = altitude < _altitude.min ? _altitude.min : altitude;
+    altitude -= _altitude.min;
+    _packet.altitude = (int16_t)(altitude * _altitude.scale_factor);
+}
+
+float Compressor::unpack_altitude()
+{
+    return (float)(_packet.altitude / _BME280_temp.scale_factor);
 }
 
 void Compressor::pack_humidity(float humidity)
 {
-    constexpr float scale_factor = gcem::pow(2, HUMIDITY_WIDTH) / 100;
-    _packet.humidity = (uint8_t)(humidity * scale_factor);
+    _packet.humidity = (uint8_t)(humidity * _humidity.scale_factor);
+}
+
+float Compressor::unpack_humidity()
+{
+    return (float)(_packet.humidity / _humidity.scale_factor);
 }
 
 void Compressor::pack_thermocouple_1(float temperature)
 {
-    constexpr float max_temp = 60;
-    constexpr float min_temp = -5;
-    constexpr float scale_factor = gcem::pow(2, THERMOCOUPLE_1_WIDTH) / (max_temp - min_temp);
-    temperature = temperature > max_temp ? max_temp : temperature;
-    temperature = temperature < min_temp ? min_temp : temperature;
-    temperature -= min_temp;
-    _packet.thermocouple_1 = (uint8_t)(temperature * scale_factor);
+    temperature = temperature > _thermocouple_1.max ? _thermocouple_1.max : temperature;
+    temperature = temperature < _thermocouple_1.min ? _thermocouple_1.min : temperature;
+    temperature -= _thermocouple_1.min;
+    _packet.thermocouple_1 = (uint8_t)(temperature * _thermocouple_1.scale_factor);
+}
+
+float Compressor::unpack_thermocouple_1()
+{
+    return (float)(_packet.thermocouple_1 / _thermocouple_1.scale_factor);
 }
 
 void Compressor::pack_thermocouple_2(float temperature)
 {
-    constexpr float max_temp = 60;
-    constexpr float min_temp = -5;
-    constexpr float scale_factor = gcem::pow(2 ,THERMOCOUPLE_2_WIDTH) / (max_temp - min_temp);
-    temperature = temperature > max_temp ? max_temp : temperature;
-    temperature = temperature < min_temp ? min_temp : temperature;
-    temperature -= min_temp;
-    _packet.thermocouple_1 = (uint8_t)(temperature * scale_factor);
+    temperature = temperature > _thermocouple_2.max ? _thermocouple_2.max : temperature;
+    temperature = temperature < _thermocouple_2.min ? _thermocouple_2.min : temperature;
+    temperature -= _thermocouple_1.min;
+    _packet.thermocouple_2 = (uint8_t)(temperature * _thermocouple_2.scale_factor);
+}
+
+float Compressor::unpack_thermocouple_2()
+{
+    return (float)(_packet.thermocouple_2 / _thermocouple_2.scale_factor);
 }
 
 void Compressor::pack_thermocouple_3(float temperature)
 {
-    constexpr float max_temp = 60;
-    constexpr float min_temp = -5;
-    constexpr float scale_factor = gcem::pow(2, THERMOCOUPLE_3_WIDTH) / (max_temp - min_temp);
-    temperature = temperature > max_temp ? max_temp : temperature;
-    temperature = temperature < min_temp ? min_temp : temperature;
-    temperature -= min_temp;
-    _packet.thermocouple_1 = (uint8_t)(temperature * scale_factor);
+    temperature = temperature > _thermocouple_3.max ? _thermocouple_3.max : temperature;
+    temperature = temperature < _thermocouple_3.min ? _thermocouple_3.min : temperature;
+    temperature -= _thermocouple_1.min;
+    _packet.thermocouple_3 = (uint8_t)(temperature * _thermocouple_3.scale_factor);
+}
+
+float Compressor::unpack_thermocouple_3()
+{
+    return (float)(_packet.thermocouple_3 / _thermocouple_3.scale_factor);
 }
 
 void Compressor::pack_thermocouple_4(float temperature)
 {
-    constexpr float max_temp = 60;
-    constexpr float min_temp = -5;
-    constexpr float scale_factor = gcem::pow(2, THERMOCOUPLE_4_WIDTH) / (max_temp - min_temp);
-    temperature = temperature > max_temp ? max_temp : temperature;
-    temperature = temperature < min_temp ? min_temp : temperature;
-    temperature -= min_temp;
-    _packet.thermocouple_1 = (uint8_t)(temperature * scale_factor);
+    temperature = temperature > _thermocouple_4.max ? _thermocouple_4.max : temperature;
+    temperature = temperature < _thermocouple_4.min ? _thermocouple_4.min : temperature;
+    temperature -= _thermocouple_1.min;
+    _packet.thermocouple_4 = (uint8_t)(temperature * _thermocouple_4.scale_factor);
+}
+
+float Compressor::unpack_thermocouple_4()
+{
+    return (float)(_packet.thermocouple_4 / _thermocouple_4.scale_factor);
 }
 
 void Compressor::pack_battery_voltage(float voltage)
 {
-    constexpr float max_voltage = 4.2;
-    constexpr float min_voltage = 3.3;
-    constexpr float scale_factor = gcem::pow(2, BATTERY_VOLTAGE_WIDTH) / (max_voltage - min_voltage);
-    voltage -= min_voltage;
-    _packet.battery_voltage = (uint8_t)(voltage * scale_factor);
+    voltage = voltage > _battery_voltage.max ? _battery_voltage.max : voltage;
+    voltage = voltage < _battery_voltage.min ? _battery_voltage.min : voltage;
+    voltage -= _battery_voltage.min;
+    _packet.battery_voltage = (uint8_t)(voltage * _battery_voltage.scale_factor);
     
+}
+
+float Compressor::unpack_battery_voltage()
+{
+    return (float)(_packet.battery_voltage / _battery_voltage.scale_factor);
 }
 
 /*
@@ -150,4 +227,24 @@ void Compressor::pack_GPS_heading(float angle)
 {
     constexpr float scale_factor = gcem::pow(2, GPS_HEADING_WIDTH) / 360;
     _packet.GPS_heading = (uint8_t)(angle * scale_factor);
+}
+
+float Compressor::unpack_GPS_heading()
+{
+    constexpr float scale_factor = gcem::pow(2, GPS_HEADING_WIDTH) / 360;
+    return (float)(_packet.GPS_heading / scale_factor);
+}
+
+uint8_t * Compressor::get_buffer()
+{
+    return _packet.buffer;
+}
+
+void Compressor::set_buffer(uint8_t * buffer_ptr)
+{
+    uint32_t i;
+    for (i = 0; i < BUFFER_LENGTH; i ++)
+    {
+        _packet.buffer[i] = buffer_ptr[i];
+    }
 }
