@@ -1,46 +1,55 @@
 #include <stdint.h>
 #include <math.h>
-#include "gcem.hpp" // Compile time maths functions. see: https://github.com/kthohr/gcem/
 #include "compress.h"
 
-#define AVG_EARTH_RAD   6371000
-#define RADS_PER_METRE  1 / AVG_EARTH_RAD
-#define DEGS_PER_METRE  RADS_PER_METRE * (360 / (2 * M_PI))
-#define DEGS_PER_METRE_E7  RADS_PER_METRE * (360E7 / (2 * M_PI))
+#define AVG_EARTH_RAD   6371000.0F
+#define RADS_PER_METRE  1.0F / AVG_EARTH_RAD
+#define DEGS_PER_METRE  RADS_PER_METRE * (360.0F / (2.0F * M_PI))
+#define DEGS_PER_METRE_E7  RADS_PER_METRE * (360.0E7F / (2.0F * M_PI))
+
+constexpr uint32_t ct_uint_pow(uint32_t argument, uint32_t index)
+{
+    uint32_t i = 0;
+    for (i = 0; i < index; i ++)
+    {
+        argument *= argument;
+    }
+    return argument;
+}
 
 Compressor::Compressor()
 {
     _BME280_temp.min = -5;
     _BME280_temp.max = 45;
-    _BME280_temp.scale_factor = gcem::pow(2, BME280_TEMPERATURE_WIDTH) / (_BME280_temp.max - _BME280_temp.min);
+    _BME280_temp.scale_factor = (float)ct_uint_pow(2, BME280_TEMPERATURE_WIDTH) / (_BME280_temp.max - _BME280_temp.min);
 
     _altitude.min = -96;
     _altitude.max = 4000;
-    _altitude.scale_factor = gcem::pow(2, ALTITUDE_WIDTH) / (_altitude.max - _altitude.min);
+    _altitude.scale_factor = (float)ct_uint_pow(2, ALTITUDE_WIDTH) / (_altitude.max - _altitude.min);
 
     _humidity.min = 0;
     _humidity.max = 100;
-    _humidity.scale_factor = gcem::pow(2, HUMIDITY_WIDTH) / (_humidity.max - _humidity.min);
+    _humidity.scale_factor = (float)ct_uint_pow(2, HUMIDITY_WIDTH) / (_humidity.max - _humidity.min);
 
     _thermocouple_1.min = -5;
     _thermocouple_1.max = 60;
-    _thermocouple_1.scale_factor = gcem::pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_1.max - _thermocouple_1.min);
+    _thermocouple_1.scale_factor = (float)ct_uint_pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_1.max - _thermocouple_1.min);
 
     _thermocouple_2.min = -5;
     _thermocouple_2.max = 60;
-    _thermocouple_2.scale_factor = gcem::pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_2.max - _thermocouple_2.min);
+    _thermocouple_2.scale_factor = (float)ct_uint_pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_2.max - _thermocouple_2.min);
 
     _thermocouple_3.min = -5;
     _thermocouple_3.max = 60;
-    _thermocouple_3.scale_factor = gcem::pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_3.max - _thermocouple_3.min);
+    _thermocouple_3.scale_factor = (float)ct_uint_pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_3.max - _thermocouple_3.min);
 
     _thermocouple_4.min = -5;
     _thermocouple_4.max = 60;
-    _thermocouple_4.scale_factor = gcem::pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_4.max - _thermocouple_4.min);
+    _thermocouple_4.scale_factor = (float)ct_uint_pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_4.max - _thermocouple_4.min);
 
     _battery_voltage.min = 3.3;
     _battery_voltage.max = 4.2;
-    _battery_voltage.scale_factor = gcem::pow(2, BATTERY_VOLTAGE_WIDTH) / (_battery_voltage.max - _battery_voltage.min);
+    _battery_voltage.scale_factor = (float)ct_uint_pow(2, BATTERY_VOLTAGE_WIDTH) / (_battery_voltage.max - _battery_voltage.min);
 }
 
 void Compressor::compute_normalisation_coefficients(float latitude_angle)
@@ -64,22 +73,22 @@ void Compressor::pack_quaternions(float r, float i, float j, float k)
 
 float Compressor::unpack_quaternion_r()
 {
-    return (float)(_packet.quaternion_r / 100);
+    return (float)(_packet.quaternion_r / 100.0F);
 }
 
 float Compressor::unpack_quaternion_i()
 {
-    return (float)(_packet.quaternion_i / 100);
+    return (float)(_packet.quaternion_i / 100.0F);
 }
 
 float Compressor::unpack_quaternion_j()
 {
-    return (float)(_packet.quaternion_j / 100);
+    return (float)(_packet.quaternion_j / 100.0F);
 }
 
 float Compressor::unpack_quaternion_k()
 {
-    return (float)(_packet.quaternion_k / 100);
+    return (float)(_packet.quaternion_k / 100.0F);
 }
 
 void Compressor::pack_BME280_temp(float temperature)
@@ -225,13 +234,13 @@ void Compressor::pack_GPS_lat_long(float latitude_angle, float longitude_angle)
 
 void Compressor::pack_GPS_heading(float angle)
 {
-    constexpr float scale_factor = gcem::pow(2, GPS_HEADING_WIDTH) / 360;
+    constexpr float scale_factor = (float)ct_uint_pow(2, GPS_HEADING_WIDTH) / 360.0F;
     _packet.GPS_heading = (uint8_t)(angle * scale_factor);
 }
 
 float Compressor::unpack_GPS_heading()
 {
-    constexpr float scale_factor = gcem::pow(2, GPS_HEADING_WIDTH) / 360;
+    constexpr float scale_factor = (float)ct_uint_pow(2, GPS_HEADING_WIDTH) / 360.0F;
     return (float)(_packet.GPS_heading / scale_factor);
 }
 
