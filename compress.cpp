@@ -1,55 +1,52 @@
 #include <stdint.h>
 #include <math.h>
 #include "compress.h"
+#include <stdio.h>
 
 #define AVG_EARTH_RAD   6371000.0F
 #define RADS_PER_METRE  1.0F / AVG_EARTH_RAD
 #define DEGS_PER_METRE  RADS_PER_METRE * (360.0F / (2.0F * M_PI))
 #define DEGS_PER_METRE_E7  RADS_PER_METRE * (360.0E7F / (2.0F * M_PI))
 
-constexpr uint32_t ct_uint_pow(uint32_t argument, uint32_t index)
-{
-    uint32_t i = 0;
-    for (i = 0; i < index; i ++)
-    {
-        argument *= argument;
-    }
-    return argument;
-}
-
 Compressor::Compressor()
 {
     _BME280_temp.min = -5;
     _BME280_temp.max = 45;
-    _BME280_temp.scale_factor = (float)ct_uint_pow(2, BME280_TEMPERATURE_WIDTH) / (_BME280_temp.max - _BME280_temp.min);
+    _BME280_temp.scale_factor = ((1 << BME280_TEMPERATURE_WIDTH) - 1) / (_BME280_temp.max - _BME280_temp.min);
 
     _altitude.min = -96;
     _altitude.max = 4000;
-    _altitude.scale_factor = (float)ct_uint_pow(2, ALTITUDE_WIDTH) / (_altitude.max - _altitude.min);
+    _altitude.scale_factor = ((1 << ALTITUDE_WIDTH) - 1) / (_altitude.max - _altitude.min);
 
     _humidity.min = 0;
     _humidity.max = 100;
-    _humidity.scale_factor = (float)ct_uint_pow(2, HUMIDITY_WIDTH) / (_humidity.max - _humidity.min);
+    _humidity.scale_factor = ((1 << HUMIDITY_WIDTH) - 1) / (_humidity.max - _humidity.min);
 
     _thermocouple_1.min = -5;
     _thermocouple_1.max = 60;
-    _thermocouple_1.scale_factor = (float)ct_uint_pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_1.max - _thermocouple_1.min);
+    _thermocouple_1.scale_factor = ((1 << THERMOCOUPLE_1_WIDTH) - 1) / (_thermocouple_1.max - _thermocouple_1.min);
 
     _thermocouple_2.min = -5;
     _thermocouple_2.max = 60;
-    _thermocouple_2.scale_factor = (float)ct_uint_pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_2.max - _thermocouple_2.min);
+    _thermocouple_2.scale_factor = ((1 << THERMOCOUPLE_1_WIDTH) - 1) / (_thermocouple_2.max - _thermocouple_2.min);
 
     _thermocouple_3.min = -5;
     _thermocouple_3.max = 60;
-    _thermocouple_3.scale_factor = (float)ct_uint_pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_3.max - _thermocouple_3.min);
+    _thermocouple_3.scale_factor = ((1 << THERMOCOUPLE_1_WIDTH) - 1) / (_thermocouple_3.max - _thermocouple_3.min);
 
     _thermocouple_4.min = -5;
     _thermocouple_4.max = 60;
-    _thermocouple_4.scale_factor = (float)ct_uint_pow(2, THERMOCOUPLE_1_WIDTH) / (_thermocouple_4.max - _thermocouple_4.min);
+    _thermocouple_4.scale_factor = ((1 << THERMOCOUPLE_1_WIDTH) - 1) / (_thermocouple_4.max - _thermocouple_4.min);
 
     _battery_voltage.min = 3.3;
     _battery_voltage.max = 4.2;
-    _battery_voltage.scale_factor = (float)ct_uint_pow(2, BATTERY_VOLTAGE_WIDTH) / (_battery_voltage.max - _battery_voltage.min);
+    _battery_voltage.scale_factor = ((1 << BATTERY_VOLTAGE_WIDTH) - 1) / (_battery_voltage.max - _battery_voltage.min);
+}
+
+void Compressor::record_initial_location(float latitude, float longitude)
+{
+    _initial_latitude = latitude;
+    _initial_longitude = longitude;
 }
 
 void Compressor::compute_normalisation_coefficients(float latitude_angle)
@@ -57,7 +54,7 @@ void Compressor::compute_normalisation_coefficients(float latitude_angle)
     constexpr float step_size_rad = RADS_PER_METRE;
     float angle_rad = latitude_angle * ((2 * M_PI) / 360E7); // latitude angle is in degrees x 10^7
     int i;
-    for (i = -2000; i <= 4000; i ++)
+    for (i = -2000; i <= 2000; i ++)
     {
         _normalisation_coefficients[i + 2000] = 360E7 / (cos(angle_rad + (i * step_size_rad)) * 2 * M_PI);
     }
@@ -101,7 +98,7 @@ void Compressor::pack_BME280_temp(float temperature)
 
 float Compressor::unpack_BME280_temp()
 {
-    return (float)(_packet.BME280_temperature / _BME280_temp.scale_factor);
+    return (float)(_packet.BME280_temperature / _BME280_temp.scale_factor) + _BME280_temp.min;
 }
 
 void Compressor::pack_altitude(float altitude)
@@ -114,7 +111,7 @@ void Compressor::pack_altitude(float altitude)
 
 float Compressor::unpack_altitude()
 {
-    return (float)(_packet.altitude / _BME280_temp.scale_factor);
+    return (float)(_packet.altitude / _altitude.scale_factor) + _altitude.min;
 }
 
 void Compressor::pack_humidity(float humidity)
@@ -137,7 +134,7 @@ void Compressor::pack_thermocouple_1(float temperature)
 
 float Compressor::unpack_thermocouple_1()
 {
-    return (float)(_packet.thermocouple_1 / _thermocouple_1.scale_factor);
+    return (float)(_packet.thermocouple_1 / _thermocouple_1.scale_factor) + _thermocouple_1.min;
 }
 
 void Compressor::pack_thermocouple_2(float temperature)
@@ -150,7 +147,7 @@ void Compressor::pack_thermocouple_2(float temperature)
 
 float Compressor::unpack_thermocouple_2()
 {
-    return (float)(_packet.thermocouple_2 / _thermocouple_2.scale_factor);
+    return (float)(_packet.thermocouple_2 / _thermocouple_2.scale_factor) + _thermocouple_2.min;
 }
 
 void Compressor::pack_thermocouple_3(float temperature)
@@ -163,7 +160,7 @@ void Compressor::pack_thermocouple_3(float temperature)
 
 float Compressor::unpack_thermocouple_3()
 {
-    return (float)(_packet.thermocouple_3 / _thermocouple_3.scale_factor);
+    return (float)(_packet.thermocouple_3 / _thermocouple_3.scale_factor) + _thermocouple_3.min;
 }
 
 void Compressor::pack_thermocouple_4(float temperature)
@@ -176,7 +173,7 @@ void Compressor::pack_thermocouple_4(float temperature)
 
 float Compressor::unpack_thermocouple_4()
 {
-    return (float)(_packet.thermocouple_4 / _thermocouple_4.scale_factor);
+    return (float)(_packet.thermocouple_4 / _thermocouple_4.scale_factor) + _thermocouple_4.min;
 }
 
 void Compressor::pack_battery_voltage(float voltage)
@@ -190,7 +187,7 @@ void Compressor::pack_battery_voltage(float voltage)
 
 float Compressor::unpack_battery_voltage()
 {
-    return (float)(_packet.battery_voltage / _battery_voltage.scale_factor);
+    return (float)(_packet.battery_voltage / _battery_voltage.scale_factor) + _battery_voltage.min;
 }
 
 /*
@@ -224,6 +221,7 @@ void Compressor::pack_GPS_lat_long(float latitude_angle, float longitude_angle)
     _coefficients_index = _packet.GPS_pos_y;
 
     float long_scale_factor = _normalisation_coefficients[_coefficients_index];
+    printf("%f\n", long_scale_factor);
     float max_long_deviation = long_scale_factor * 2000;
     float max_long_total = long_scale_factor * 4000;
     longitude_angle -= (_initial_longitude - max_long_deviation);
@@ -232,15 +230,25 @@ void Compressor::pack_GPS_lat_long(float latitude_angle, float longitude_angle)
     _packet.GPS_pos_x = (uint16_t)(longitude_angle / long_scale_factor);
 }
 
+float Compressor::unpack_GPS_lat()
+{
+    return (float)(_packet.GPS_pos_y - 2000);
+}
+
+float Compressor::unpack_GPS_long()
+{
+    return (float)(_packet.GPS_pos_x - 2000);
+}
+
 void Compressor::pack_GPS_heading(float angle)
 {
-    constexpr float scale_factor = (float)ct_uint_pow(2, GPS_HEADING_WIDTH) / 360.0F;
+    constexpr float scale_factor = ((1 << GPS_HEADING_WIDTH) - 1) / 360.0F;
     _packet.GPS_heading = (uint8_t)(angle * scale_factor);
 }
 
 float Compressor::unpack_GPS_heading()
 {
-    constexpr float scale_factor = (float)ct_uint_pow(2, GPS_HEADING_WIDTH) / 360.0F;
+    constexpr float scale_factor = ((1 << GPS_HEADING_WIDTH) - 1) / 360.0F;
     return (float)(_packet.GPS_heading / scale_factor);
 }
 

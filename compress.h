@@ -35,6 +35,7 @@ class Compressor
     uint8_t * get_buffer();
     void set_buffer(uint8_t * buffer_ptr);
 
+    void record_initial_location(float latitude, float longitude);
     void compute_normalisation_coefficients(float latitude_angle);
 
     void set_status(uint8_t status);
