@@ -17,7 +17,7 @@
 #define GPS_POS_Y_WIDTH     12
 #define GPS_HEADING_WIDTH   8
 
-#define BUFFER_LENGTH   15
+#define BUFFER_LENGTH   16
 
 struct limits
 {
@@ -96,22 +96,25 @@ class Compressor
 
         struct
         {
-            uint8_t status:STATUS_WIDTH;
-            uint8_t quaternion_r:QUATERNIAN_WIDTH; // 0.01 resolution
-            uint8_t quaternion_i:QUATERNIAN_WIDTH; // 0.01 resolution
-            uint8_t quaternion_j:QUATERNIAN_WIDTH; // 0.01 resolution
-            uint8_t quaternion_k:QUATERNIAN_WIDTH; // 0.01 resolution
-            uint8_t BME280_temperature:BME280_TEMPERATURE_WIDTH; // 0.5 degree C resolution between -5 and +60
-            uint16_t altitude:ALTITUDE_WIDTH; // 1 m resolution. 4096 m range 
-            uint8_t humidity:HUMIDITY_WIDTH; // 0.78% resolution
-            uint8_t thermocouple_1:THERMOCOUPLE_1_WIDTH; // range tbc
-            uint8_t thermocouple_2:THERMOCOUPLE_2_WIDTH; // range tbc
-            uint8_t thermocouple_3:THERMOCOUPLE_3_WIDTH; // range tbc
-            uint8_t thermocouple_4:THERMOCOUPLE_4_WIDTH; // range tbc
-            uint8_t battery_voltage:BATTERY_VOLTAGE_WIDTH; // 0.1125 V resolution between 3.3 V and 4.2 V
-            uint16_t GPS_pos_x:GPS_POS_X_WIDTH; // 1 m resolution over 4 km on a projected cartesian grid
-            uint16_t GPS_pos_y:GPS_POS_Y_WIDTH; // 1 m resolution over 4 km on a projected cartesian grid
-            uint8_t GPS_heading:GPS_HEADING_WIDTH; // 1.4 degree resolution
+            unsigned int status:STATUS_WIDTH;
+            unsigned int quaternion_r:QUATERNIAN_WIDTH; // 0.01 resolution
+            unsigned int quaternion_i:QUATERNIAN_WIDTH; // 0.01 resolution
+            unsigned int quaternion_j:QUATERNIAN_WIDTH; // 0.01 resolution
+            unsigned int quaternion_k:QUATERNIAN_WIDTH; // 0.01 resolution
+            unsigned int :1; // pad to 32-bit word boundary
+            unsigned int BME280_temperature:BME280_TEMPERATURE_WIDTH; // 0.5 degree C resolution between -5 and +60
+            unsigned int altitude:ALTITUDE_WIDTH; // 1 m resolution. 4096 m range 
+            unsigned int humidity:HUMIDITY_WIDTH; // 0.78% resolution
+            unsigned int :6; // pad to 32-bit word boundary
+            unsigned int thermocouple_1:THERMOCOUPLE_1_WIDTH; // range tbc
+            unsigned int thermocouple_2:THERMOCOUPLE_2_WIDTH; // range tbc
+            unsigned int thermocouple_3:THERMOCOUPLE_3_WIDTH; // range tbc
+            unsigned int thermocouple_4:THERMOCOUPLE_4_WIDTH; // range tbc
+            unsigned int battery_voltage:BATTERY_VOLTAGE_WIDTH; // 0.1125 V resolution between 3.3 V and 4.2 V
+            unsigned int :1; // pad to 32-bit word boundary
+            unsigned int GPS_pos_x:GPS_POS_X_WIDTH; // 1 m resolution over 4 km on a projected cartesian grid
+            unsigned int GPS_pos_y:GPS_POS_Y_WIDTH; // 1 m resolution over 4 km on a projected cartesian grid
+            unsigned int GPS_heading:GPS_HEADING_WIDTH; // 1.4 degree resolution
             // timebase??
         };
     } _packet;
