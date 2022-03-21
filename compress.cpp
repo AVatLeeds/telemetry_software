@@ -56,7 +56,7 @@ void Compressor::compute_normalisation_coefficients(float latitude_angle)
     int i;
     for (i = -2000; i <= 2000; i ++)
     {
-        _normalisation_coefficients[i + 2000] = 360E7 / (cos(angle_rad + (i * step_size_rad)) * 2 * M_PI);
+        _normalisation_coefficients[i + 2000] = 360E7 / (AVG_EARTH_RAD * cos(angle_rad + (i * step_size_rad)) * 2 * M_PI);
     }
 }
 
@@ -221,7 +221,6 @@ void Compressor::pack_GPS_lat_long(float latitude_angle, float longitude_angle)
     _coefficients_index = _packet.GPS_pos_y;
 
     float long_scale_factor = _normalisation_coefficients[_coefficients_index];
-    printf("%f\n", long_scale_factor);
     float max_long_deviation = long_scale_factor * 2000;
     float max_long_total = long_scale_factor * 4000;
     longitude_angle -= (_initial_longitude - max_long_deviation);

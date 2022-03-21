@@ -72,6 +72,50 @@ int main()
     printf("%f\n", compressor.unpack_GPS_lat());
     printf("%f\n", compressor.unpack_GPS_long());
 
+    compressor.pack_GPS_heading(59.0);
+    printf("%f\n", compressor.unpack_GPS_heading());
+
+    printf("\n");
+
+    int i;
+    uint8_t * buffer = compressor.get_buffer();
+    for (i = 0; i < 16; i ++)
+    {
+        printf("%d, ", buffer[i]);
+    }
+    printf("\n");
+
+    for (i = 0; i < 16; i ++)
+    {
+        printf("%d", (buffer[i] >> 0) & 1);
+        printf("%d", (buffer[i] >> 1) & 1);
+        printf("%d", (buffer[i] >> 2) & 1);
+        printf("%d", (buffer[i] >> 3) & 1);
+        printf("%d", (buffer[i] >> 4) & 1);
+        printf("%d", (buffer[i] >> 5) & 1);
+        printf("%d", (buffer[i] >> 6) & 1);
+        printf("%d", (buffer[i] >> 7) & 1);
+    }
+    printf("\n");
+
+    decompressor.set_buffer(compressor.get_buffer());
+
+    printf("%f\n", decompressor.unpack_quaternion_r());
+    printf("%f\n", decompressor.unpack_quaternion_i());
+    printf("%f\n", decompressor.unpack_quaternion_j());
+    printf("%f\n", decompressor.unpack_quaternion_k());
+    printf("%f\n", decompressor.unpack_BME280_temp());
+    printf("%f\n", decompressor.unpack_altitude());
+    printf("%f\n", decompressor.unpack_humidity());
+    printf("%f\n", decompressor.unpack_thermocouple_1());
+    printf("%f\n", decompressor.unpack_thermocouple_2());
+    printf("%f\n", decompressor.unpack_thermocouple_3());
+    printf("%f\n", decompressor.unpack_thermocouple_4());
+    printf("%f\n", decompressor.unpack_battery_voltage());
+    printf("%f\n", decompressor.unpack_GPS_lat());
+    printf("%f\n", decompressor.unpack_GPS_long());
+    printf("%f\n", decompressor.unpack_GPS_heading());
+
     return 0;
 }
 
